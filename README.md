@@ -29,7 +29,7 @@ Then open the printed local URL in your browser.
 ## Build status
 
 - [x] Phase 1 — Project scaffold (Bun + Vite + React + Tailwind, design tokens)
-- [ ] Phase 2 — Classic mode game engine & UI
+- [x] Phase 2 — Classic mode game engine & UI
 - [ ] Phase 3 — AI opponents (Easy / Medium / Unbeatable)
 - [ ] Phase 4 — Ultimate Tic Tac Toe mode
 - [ ] Phase 5 — Scoring, sound design & animation polish
