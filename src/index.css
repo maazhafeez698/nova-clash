@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-void-deep text-ink font-body antialiased;
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(76, 224, 210, 0.08), transparent 40%),
+      radial-gradient(circle at 85% 10%, rgba(255, 180, 84, 0.08), transparent 35%),
+      radial-gradient(circle at 50% 100%, rgba(255, 92, 138, 0.06), transparent 45%);
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    @apply bg-cyan/30 text-ink;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme('colors.cyan.DEFAULT');
+    outline-offset: 3px;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
