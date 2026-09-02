@@ -1,22 +1,35 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { calculateWinner, emptyBoard, isBoardFull, otherSymbol } from '../game/gameLogic.js'
+import { getAiMove } from '../game/ai.js'
+
+const AI_THINK_DELAY_MS = 450
 
 /**
- * Local state machine for a single Classic (3x3) match.
+ * Local state machine for a single Classic (3x3) match. Supports local PvP or a
+ * built-in AI opponent (easy / medium / hard) that plays the symbol the human
+ * did not choose.
+ *
+ * @param {{ opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O' }} config
  * @param {(result: { winner: string|null, isDraw: boolean }) => void} onRoundEnd
  */
-export function useClassicGame(onRoundEnd) {
+export function useClassicGame(config, onRoundEnd) {
+  const { opponent, difficulty, humanSymbol } = config
+  const aiSymbol = otherSymbol(humanSymbol)
+
   const [board, setBoard] = useState(emptyBoard)
   const [current, setCurrent] = useState('X')
   const [winner, setWinner] = useState(null)
   const [winLine, setWinLine] = useState(null)
   const [isDraw, setIsDraw] = useState(false)
+  const [aiThinking, setAiThinking] = useState(false)
 
   const isOver = winner !== null || isDraw
+  const isAiTurn = opponent === 'ai' && current === aiSymbol && !isOver
 
   const placeMark = useCallback(
     (index) => {
       if (isOver || board[index] !== null) return
+      if (opponent === 'ai' && current !== humanSymbol) return // ignore clicks during AI turn
 
       const nextBoard = board.slice()
       nextBoard[index] = current
@@ -29,25 +42,69 @@ export function useClassicGame(onRoundEnd) {
         onRoundEnd?.({ winner: result.winner, isDraw: false })
         return
       }
-
       if (isBoardFull(nextBoard)) {
         setIsDraw(true)
         onRoundEnd?.({ winner: null, isDraw: true })
         return
       }
-
       setCurrent((prev) => otherSymbol(prev))
     },
-    [board, current, isOver, onRoundEnd]
+    [board, current, isOver, opponent, humanSymbol, onRoundEnd]
   )
 
-  const reset = useCallback((startingPlayer = 'X') => {
+  // AI turn: "think" briefly, then play.
+  useEffect(() => {
+    if (!isAiTurn) return
+
+    setAiThinking(true)
+    const timer = setTimeout(() => {
+      setBoard((prevBoard) => {
+        const move = getAiMove(prevBoard, aiSymbol, difficulty)
+        if (move === undefined || move === null) return prevBoard
+
+        const nextBoard = prevBoard.slice()
+        nextBoard[move] = aiSymbol
+
+        const result = calculateWinner(nextBoard)
+        if (result.winner) {
+          setWinner(result.winner)
+          setWinLine(result.line)
+          onRoundEnd?.({ winner: result.winner, isDraw: false })
+        } else if (isBoardFull(nextBoard)) {
+          setIsDraw(true)
+          onRoundEnd?.({ winner: null, isDraw: true })
+        } else {
+          setCurrent(humanSymbol)
+        }
+        return nextBoard
+      })
+      setAiThinking(false)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, AI_THINK_DELAY_MS)
+
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAiTurn, aiSymbol, difficulty, humanSymbol])
+
+  const reset = useCallback(() => {
     setBoard(emptyBoard())
-    setCurrent(startingPlayer)
+    setCurrent('X') // X always opens the round, per classic rules
     setWinner(null)
     setWinLine(null)
     setIsDraw(false)
+    setAiThinking(false)
   }, [])
 
-  return { board, current, winner, winLine, isDraw, isOver, placeMark, reset }
+  return {
+    board,
+    current,
+    winner,
+    winLine,
+    isDraw,
+    isOver,
+    aiThinking,
+    placeMark,
+    reset,
+    aiSymbol,
+  }
 }
