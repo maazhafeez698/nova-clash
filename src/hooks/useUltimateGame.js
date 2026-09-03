@@ -6,11 +6,13 @@ import { getUltimateAiMove } from '../game/ultimateAi.js'
 const AI_THINK_DELAY_MS = 550
 
 /**
- * @param {{ opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O' }} config
- * @param {(result: { winner: string|null, isDraw: boolean }) => void} onRoundEnd
+ * @param {{
+ *   opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O',
+ *   onMove?: (symbol: string) => void,
+ *   onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void,
+ * }} options
  */
-export function useUltimateGame(config, onRoundEnd) {
-  const { opponent, difficulty, humanSymbol } = config
+export function useUltimateGame({ opponent, difficulty, humanSymbol, onMove, onRoundEnd }) {
   const aiSymbol = otherSymbol(humanSymbol)
 
   const [state, setState] = useState(createUltimateState)
@@ -23,13 +25,15 @@ export function useUltimateGame(config, onRoundEnd) {
     (boardIndex, cellIndex) => {
       setState((prev) => {
         if (!isCellPlayable(prev, boardIndex, cellIndex)) return prev
+        const symbol = prev.current
         const next = applyUltimateMove(prev, boardIndex, cellIndex)
+        onMove?.(symbol)
         if (next.overallWinner) onRoundEnd?.({ winner: next.overallWinner, isDraw: false })
         else if (next.isDraw) onRoundEnd?.({ winner: null, isDraw: true })
         return next
       })
     },
-    [onRoundEnd]
+    [onMove, onRoundEnd]
   )
 
   const placeMark = useCallback(
@@ -50,12 +54,12 @@ export function useUltimateGame(config, onRoundEnd) {
         const move = getUltimateAiMove(prev, aiSymbol, difficulty)
         if (!move) return prev
         const next = applyUltimateMove(prev, move.board, move.cell)
+        onMove?.(aiSymbol)
         if (next.overallWinner) onRoundEnd?.({ winner: next.overallWinner, isDraw: false })
         else if (next.isDraw) onRoundEnd?.({ winner: null, isDraw: true })
         return next
       })
       setAiThinking(false)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, AI_THINK_DELAY_MS)
 
     return () => clearTimeout(timer)

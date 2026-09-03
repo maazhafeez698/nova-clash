@@ -1,10 +1,26 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import UltimateBoard from './UltimateBoard.jsx'
 import StatusBar from './StatusBar.jsx'
+import WinGlow from './WinGlow.jsx'
 import { useUltimateGame } from '../hooks/useUltimateGame.js'
 
-export default function UltimateGameView({ opponent, difficulty, humanSymbol, onRoundEnd }) {
-  const game = useUltimateGame({ opponent, difficulty, humanSymbol }, onRoundEnd)
+export default function UltimateGameView({ opponent, difficulty, humanSymbol, onRoundEnd, sound }) {
+  const handleRoundEnd = useCallback(
+    (result) => {
+      if (result.winner) sound.playWin()
+      else sound.playDraw()
+      onRoundEnd(result)
+    },
+    [sound, onRoundEnd]
+  )
+
+  const game = useUltimateGame({
+    opponent,
+    difficulty,
+    humanSymbol,
+    onMove: sound.playMove,
+    onRoundEnd: handleRoundEnd,
+  })
   const { current, overallWinner, isDraw, isOver, aiThinking, placeMark, reset, activeBoard } = game
 
   useEffect(() => {
@@ -20,12 +36,18 @@ export default function UltimateGameView({ opponent, difficulty, humanSymbol, on
 
   return (
     <>
-      <UltimateBoard state={game} onCellClick={placeMark} disabled={isOver || aiThinking} />
+      <div className="relative">
+        <WinGlow symbol={overallWinner} />
+        <UltimateBoard state={game} onCellClick={placeMark} disabled={isOver || aiThinking} />
+      </div>
       <StatusBar
         current={current}
         winner={overallWinner}
         isDraw={isDraw}
-        onRestart={() => reset()}
+        onRestart={() => {
+          sound.playClick()
+          reset()
+        }}
         aiThinking={aiThinking}
         hint={hint}
       />

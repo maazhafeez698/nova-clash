@@ -1,11 +1,26 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import Board from './Board.jsx'
 import StatusBar from './StatusBar.jsx'
+import WinGlow from './WinGlow.jsx'
 import { useClassicGame } from '../hooks/useClassicGame.js'
 
-export default function ClassicGameView({ opponent, difficulty, humanSymbol, onRoundEnd }) {
-  const { board, current, winner, winLine, isDraw, isOver, aiThinking, placeMark, reset } =
-    useClassicGame({ opponent, difficulty, humanSymbol }, onRoundEnd)
+export default function ClassicGameView({ opponent, difficulty, humanSymbol, onRoundEnd, sound }) {
+  const handleRoundEnd = useCallback(
+    (result) => {
+      if (result.winner) sound.playWin()
+      else sound.playDraw()
+      onRoundEnd(result)
+    },
+    [sound, onRoundEnd]
+  )
+
+  const { board, current, winner, winLine, isDraw, isOver, aiThinking, placeMark, reset } = useClassicGame({
+    opponent,
+    difficulty,
+    humanSymbol,
+    onMove: sound.playMove,
+    onRoundEnd: handleRoundEnd,
+  })
 
   useEffect(() => {
     reset()
@@ -14,18 +29,24 @@ export default function ClassicGameView({ opponent, difficulty, humanSymbol, onR
 
   return (
     <>
-      <Board
-        board={board}
-        winLine={winLine}
-        onCellClick={placeMark}
-        disabled={isOver || aiThinking}
-        currentPlayer={current}
-      />
+      <div className="relative">
+        <WinGlow symbol={winner} />
+        <Board
+          board={board}
+          winLine={winLine}
+          onCellClick={placeMark}
+          disabled={isOver || aiThinking}
+          currentPlayer={current}
+        />
+      </div>
       <StatusBar
         current={current}
         winner={winner}
         isDraw={isDraw}
-        onRestart={() => reset()}
+        onRestart={() => {
+          sound.playClick()
+          reset()
+        }}
         aiThinking={aiThinking}
       />
     </>

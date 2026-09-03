@@ -9,11 +9,13 @@ const AI_THINK_DELAY_MS = 450
  * built-in AI opponent (easy / medium / hard) that plays the symbol the human
  * did not choose.
  *
- * @param {{ opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O' }} config
- * @param {(result: { winner: string|null, isDraw: boolean }) => void} onRoundEnd
+ * @param {{
+ *   opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O',
+ *   onMove?: (symbol: string) => void,
+ *   onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void,
+ * }} options
  */
-export function useClassicGame(config, onRoundEnd) {
-  const { opponent, difficulty, humanSymbol } = config
+export function useClassicGame({ opponent, difficulty, humanSymbol, onMove, onRoundEnd }) {
   const aiSymbol = otherSymbol(humanSymbol)
 
   const [board, setBoard] = useState(emptyBoard)
@@ -34,6 +36,7 @@ export function useClassicGame(config, onRoundEnd) {
       const nextBoard = board.slice()
       nextBoard[index] = current
       setBoard(nextBoard)
+      onMove?.(current)
 
       const result = calculateWinner(nextBoard)
       if (result.winner) {
@@ -49,7 +52,7 @@ export function useClassicGame(config, onRoundEnd) {
       }
       setCurrent((prev) => otherSymbol(prev))
     },
-    [board, current, isOver, opponent, humanSymbol, onRoundEnd]
+    [board, current, isOver, opponent, humanSymbol, onMove, onRoundEnd]
   )
 
   // AI turn: "think" briefly, then play.
@@ -64,6 +67,7 @@ export function useClassicGame(config, onRoundEnd) {
 
         const nextBoard = prevBoard.slice()
         nextBoard[move] = aiSymbol
+        onMove?.(aiSymbol)
 
         const result = calculateWinner(nextBoard)
         if (result.winner) {
@@ -79,7 +83,6 @@ export function useClassicGame(config, onRoundEnd) {
         return nextBoard
       })
       setAiThinking(false)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, AI_THINK_DELAY_MS)
 
     return () => clearTimeout(timer)

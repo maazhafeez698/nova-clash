@@ -7,12 +7,23 @@ function ScoreCell({ label, value, colorClass }) {
   )
 }
 
-export default function ScorePanel({ scores, xLabel = 'PLAYER X', oLabel = 'PLAYER O' }) {
+export default function ScorePanel({ scores, xLabel = 'PLAYER X', oLabel = 'PLAYER O', onResetScores }) {
   return (
-    <div className="flex gap-2.5 sm:gap-3 w-full">
-      <ScoreCell label={xLabel} value={scores.X} colorClass="text-amber" />
-      <ScoreCell label="TIES" value={scores.draws} colorClass="text-ink-muted" />
-      <ScoreCell label={oLabel} value={scores.O} colorClass="text-cyan" />
+    <div className="w-full flex flex-col items-center gap-2">
+      <div className="flex gap-2.5 sm:gap-3 w-full">
+        <ScoreCell label={xLabel} value={scores.X} colorClass="text-amber" />
+        <ScoreCell label="TIES" value={scores.draws} colorClass="text-ink-muted" />
+        <ScoreCell label={oLabel} value={scores.O} colorClass="text-cyan" />
+      </div>
+      {onResetScores && (
+        <button
+          type="button"
+          onClick={onResetScores}
+          className="text-xs text-ink-faint hover:text-ink-muted transition-colors"
+        >
+          Reset scoreboard
+        </button>
+      )}
     </div>
   )
 }
