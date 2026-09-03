@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import Header from './components/Header.jsx'
-import Board from './components/Board.jsx'
-import StatusBar from './components/StatusBar.jsx'
 import ScorePanel from './components/ScorePanel.jsx'
 import ControlBar from './components/ControlBar.jsx'
-import { useClassicGame } from './hooks/useClassicGame.js'
+import ClassicGameView from './components/ClassicGameView.jsx'
+import UltimateGameView from './components/UltimateGameView.jsx'
 
 export default function App() {
   const [scores, setScores] = useState({ X: 0, O: 0, draws: 0 })
+  const [mode, setMode] = useState('classic') // 'classic' | 'ultimate'
   const [opponent, setOpponent] = useState('pvp') // 'pvp' | 'ai'
   const [difficulty, setDifficulty] = useState('medium')
   const [humanSymbol, setHumanSymbol] = useState('X')
@@ -20,25 +20,19 @@ export default function App() {
     })
   }, [])
 
-  const { board, current, winner, winLine, isDraw, isOver, aiThinking, placeMark, reset } =
-    useClassicGame({ opponent, difficulty, humanSymbol }, handleRoundEnd)
-
-  // Start a fresh round whenever the match setup changes, so mid-game
-  // switches never leave the board in a half-configured state.
-  useEffect(() => {
-    reset()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opponent, difficulty, humanSymbol])
-
   const xLabel = opponent === 'ai' ? (humanSymbol === 'X' ? 'YOU' : 'NOVA') : 'PLAYER X'
   const oLabel = opponent === 'ai' ? (humanSymbol === 'O' ? 'YOU' : 'NOVA') : 'PLAYER O'
 
+  const GameView = mode === 'ultimate' ? UltimateGameView : ClassicGameView
+
   return (
     <div className="min-h-dvh flex items-center justify-center px-4 py-8 sm:py-14">
-      <div className="w-full flex flex-col gap-5 sm:gap-6">
+      <div className="w-full max-w-[min(94vw,30rem)] mx-auto flex flex-col gap-5 sm:gap-6">
         <Header />
 
         <ControlBar
+          mode={mode}
+          onModeChange={setMode}
           opponent={opponent}
           onOpponentChange={setOpponent}
           difficulty={difficulty}
@@ -47,20 +41,11 @@ export default function App() {
           onHumanSymbolChange={setHumanSymbol}
         />
 
-        <Board
-          board={board}
-          winLine={winLine}
-          onCellClick={placeMark}
-          disabled={isOver || aiThinking}
-          currentPlayer={current}
-        />
-
-        <StatusBar
-          current={current}
-          winner={winner}
-          isDraw={isDraw}
-          onRestart={() => reset()}
-          aiThinking={aiThinking}
+        <GameView
+          opponent={opponent}
+          difficulty={difficulty}
+          humanSymbol={humanSymbol}
+          onRoundEnd={handleRoundEnd}
         />
 
         <ScorePanel scores={scores} xLabel={xLabel} oLabel={oLabel} />

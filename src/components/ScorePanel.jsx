@@ -9,7 +9,7 @@ function ScoreCell({ label, value, colorClass }) {
 
 export default function ScorePanel({ scores, xLabel = 'PLAYER X', oLabel = 'PLAYER O' }) {
   return (
-    <div className="flex gap-2.5 sm:gap-3 w-full max-w-[min(92vw,26rem)] mx-auto">
+    <div className="flex gap-2.5 sm:gap-3 w-full">
       <ScoreCell label={xLabel} value={scores.X} colorClass="text-amber" />
       <ScoreCell label="TIES" value={scores.draws} colorClass="text-ink-muted" />
       <ScoreCell label={oLabel} value={scores.O} colorClass="text-cyan" />

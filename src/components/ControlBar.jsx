@@ -1,5 +1,10 @@
 import SegmentedControl from './SegmentedControl.jsx'
 
+const MODE_OPTIONS = [
+  { value: 'classic', label: 'Classic' },
+  { value: 'ultimate', label: 'Ultimate' },
+]
+
 const OPPONENT_OPTIONS = [
   { value: 'pvp', label: 'Local PvP' },
   { value: 'ai', label: 'Vs Nova AI' },
@@ -17,6 +22,8 @@ const SYMBOL_OPTIONS = [
 ]
 
 export default function ControlBar({
+  mode,
+  onModeChange,
   opponent,
   onOpponentChange,
   difficulty,
@@ -25,9 +32,9 @@ export default function ControlBar({
   onHumanSymbolChange,
 }) {
   return (
-    <div className="w-full max-w-[min(92vw,26rem)] mx-auto flex flex-col gap-2.5">
+    <div className="w-full flex flex-col gap-2.5">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <SegmentedControl options={OPPONENT_OPTIONS} value={opponent} onChange={onOpponentChange} />
+        <SegmentedControl options={MODE_OPTIONS} value={mode} onChange={onModeChange} />
         <SegmentedControl
           options={SYMBOL_OPTIONS}
           value={humanSymbol}
@@ -36,12 +43,20 @@ export default function ControlBar({
         />
       </div>
 
-      {opponent === 'ai' && (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-faint">Difficulty</span>
-          <SegmentedControl options={DIFFICULTY_OPTIONS} value={difficulty} onChange={onDifficultyChange} size="sm" />
-        </div>
-      )}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <SegmentedControl options={OPPONENT_OPTIONS} value={opponent} onChange={onOpponentChange} size="sm" />
+        {opponent === 'ai' && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-ink-faint hidden sm:inline">Difficulty</span>
+            <SegmentedControl
+              options={DIFFICULTY_OPTIONS}
+              value={difficulty}
+              onChange={onDifficultyChange}
+              size="sm"
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

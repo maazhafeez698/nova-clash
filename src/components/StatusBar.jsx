@@ -3,7 +3,7 @@ const SYMBOL_STYLES = {
   O: { text: 'text-cyan', dot: 'bg-cyan' },
 }
 
-export default function StatusBar({ current, winner, isDraw, onRestart, aiThinking }) {
+export default function StatusBar({ current, winner, isDraw, onRestart, aiThinking, hint }) {
   let message
   let tone = SYMBOL_STYLES[current]
 
@@ -27,23 +27,26 @@ export default function StatusBar({ current, winner, isDraw, onRestart, aiThinki
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 w-full max-w-[min(92vw,26rem)] mx-auto">
-      <div className="flex items-center gap-2.5 font-body text-sm sm:text-base">
-        <span
-          className={`h-2.5 w-2.5 rounded-full ${tone.dot} ${
-            !winner && !isDraw ? 'animate-pulse' : ''
-          }`}
-          aria-hidden="true"
-        />
-        <span className="text-ink">{message}</span>
+    <div className="w-full flex flex-col gap-1">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5 font-body text-sm sm:text-base">
+          <span
+            className={`h-2.5 w-2.5 rounded-full ${tone.dot} ${
+              !winner && !isDraw ? 'animate-pulse' : ''
+            }`}
+            aria-hidden="true"
+          />
+          <span className="text-ink">{message}</span>
+        </div>
+        <button
+          type="button"
+          onClick={onRestart}
+          className="text-sm font-medium text-ink-muted hover:text-ink border border-void-line hover:border-ink-faint rounded-lg px-3 py-1.5 transition-colors"
+        >
+          Restart
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={onRestart}
-        className="text-sm font-medium text-ink-muted hover:text-ink border border-void-line hover:border-ink-faint rounded-lg px-3 py-1.5 transition-colors"
-      >
-        Restart
-      </button>
+      {hint && !winner && !isDraw && <p className="text-xs text-ink-faint pl-5">{hint}</p>}
     </div>
   )
 }

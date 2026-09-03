@@ -31,6 +31,6 @@ Then open the printed local URL in your browser.
 - [x] Phase 1 — Project scaffold (Bun + Vite + React + Tailwind, design tokens)
 - [x] Phase 2 — Classic mode game engine & UI
 - [x] Phase 3 — AI opponents (Easy / Medium / Unbeatable)
-- [ ] Phase 4 — Ultimate Tic Tac Toe mode
+- [x] Phase 4 — Ultimate Tic Tac Toe mode
 - [ ] Phase 5 — Scoring, sound design & animation polish
 - [ ] Phase 6 — Accessibility pass & docs

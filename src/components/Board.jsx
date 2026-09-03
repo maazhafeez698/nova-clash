@@ -5,7 +5,7 @@ export default function Board({ board, winLine, onCellClick, disabled, currentPl
     <div
       role="group"
       aria-label="Tic Tac Toe board"
-      className="grid grid-cols-3 gap-2.5 sm:gap-3 w-full max-w-[min(92vw,26rem)] mx-auto"
+      className="grid grid-cols-3 gap-2.5 sm:gap-3 w-full"
     >
       {board.map((value, index) => (
         <Cell
