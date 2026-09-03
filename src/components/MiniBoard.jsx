@@ -1,10 +1,16 @@
 import { XMark, OMark } from './Marks.jsx'
 
-export default function MiniBoard({ cells, winnerSymbol, isActive, onCellClick, metaHighlight }) {
+export default function MiniBoard({ cells, winnerSymbol, isActive, onCellClick, metaHighlight, boardIndex }) {
   const resolved = winnerSymbol !== null
 
   return (
     <div
+      role="group"
+      aria-label={
+        resolved
+          ? `Board ${boardIndex + 1}, ${winnerSymbol === 'draw' ? 'tied' : `won by ${winnerSymbol}`}`
+          : `Board ${boardIndex + 1}${isActive ? ', playable' : ', locked'}`
+      }
       className={[
         'relative grid grid-cols-3 gap-1 rounded-lg p-1 sm:p-1.5 border transition-colors duration-200',
         isActive ? 'border-cyan/60 bg-void-surface shadow-glow' : 'border-void-line bg-void-surface/60',
@@ -22,7 +28,7 @@ export default function MiniBoard({ cells, winnerSymbol, isActive, onCellClick, 
             type="button"
             onClick={() => onCellClick(i)}
             disabled={!clickable}
-            aria-label={value ? `marked ${value}` : 'empty cell'}
+            aria-label={value ? `board ${boardIndex + 1} cell ${i + 1}, marked ${value}` : `board ${boardIndex + 1} cell ${i + 1}, empty`}
             tabIndex={clickable ? 0 : -1}
             className={[
               'aspect-square rounded-sm flex items-center justify-center bg-void-deep/60',

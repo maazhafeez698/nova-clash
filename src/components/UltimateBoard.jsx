@@ -18,6 +18,7 @@ export default function UltimateBoard({ state, onCellClick, disabled }) {
         return (
           <MiniBoard
             key={boardIndex}
+            boardIndex={boardIndex}
             cells={cells}
             winnerSymbol={boardWinners[boardIndex]}
             isActive={isLegal}

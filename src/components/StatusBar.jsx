@@ -29,7 +29,12 @@ export default function StatusBar({ current, winner, isDraw, onRestart, aiThinki
   return (
     <div className="w-full flex flex-col gap-1">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5 font-body text-sm sm:text-base">
+        <div
+          className="flex items-center gap-2.5 font-body text-sm sm:text-base"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span
             className={`h-2.5 w-2.5 rounded-full ${tone.dot} ${
               !winner && !isDraw ? 'animate-pulse' : ''
