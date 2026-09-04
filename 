@@ -1,0 +1,23 @@
+feat: accessibility pass (aria-live, aria-labels) and final docs
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Wed Sep 2 06:17:41 2026 +0000
+#
+# interactive rebase in progress; onto 4012edf
+# Last commands done (6 commands done):
+#    reword d6b908f # Phase 5: persistent scoring, synthesized sound design, win-glow animation
+#    reword d52601c # Phase 6: accessibility pass (aria-live, aria-labels) and final docs
+# No commands remaining.
+# You are currently editing a commit while rebasing branch 'master' on '4012edf'.
+#
+# Changes to be committed:
+#	modified:   README.md
+#	modified:   src/components/MiniBoard.jsx
+#	modified:   src/components/StatusBar.jsx
+#	modified:   src/components/UltimateBoard.jsx
+#
+# Untracked files:
+#	bun.lock
+#
