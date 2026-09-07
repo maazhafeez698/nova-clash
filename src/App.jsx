@@ -15,7 +15,7 @@ export default function App() {
     draws: 0,
   });
   const [mode, setMode] = useState("classic"); // 'classic' | 'ultimate'
-  const [opponent, setOpponent] = useState("pvp"); // 'pvp' | 'ai'
+  const [opponent, setOpponent] = useState("pvp"); // 'pvp' | 'ai' | 'online'
   const [difficulty, setDifficulty] = useState("medium");
   const [humanSymbol, setHumanSymbol] = useState("X");
 
@@ -53,8 +53,8 @@ export default function App() {
   }, [sound, setScores]);
 
   return (
-    <div className="min-h-dvh flex items-center justify-center px-4 py-8 sm:py-14">
-      <div className="w-full max-w-[min(94vw,30rem)] mx-auto flex flex-col gap-5 sm:gap-6">
+    <div className="h-dvh overflow-hidden flex items-center justify-center px-3 py-3 sm:px-4 sm:py-4">
+      <div className="w-full h-full max-w-[min(94vw,30rem)] mx-auto flex flex-col gap-2 sm:gap-3">
         <Header muted={sound.muted} onToggleMute={sound.toggleMute} />
 
         <ControlBar
@@ -68,21 +68,23 @@ export default function App() {
           onHumanSymbolChange={withClick(setHumanSymbol)}
         />
 
-        {opponent === "online" ? (
-          <OnlineGameView
-            mode={mode}
-            onRoundEnd={handleRoundEnd}
-            sound={sound}
-          />
-        ) : (
-          <GameView
-            opponent={opponent}
-            difficulty={difficulty}
-            humanSymbol={humanSymbol}
-            onRoundEnd={handleRoundEnd}
-            sound={sound}
-          />
-        )}
+        <div className="flex-1 min-h-0 w-full flex flex-col items-center justify-center gap-2 sm:gap-3">
+          {opponent === "online" ? (
+            <OnlineGameView
+              mode={mode}
+              onRoundEnd={handleRoundEnd}
+              sound={sound}
+            />
+          ) : (
+            <GameView
+              opponent={opponent}
+              difficulty={difficulty}
+              humanSymbol={humanSymbol}
+              onRoundEnd={handleRoundEnd}
+              sound={sound}
+            />
+          )}
+        </div>
 
         <ScorePanel
           scores={scores}

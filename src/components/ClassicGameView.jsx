@@ -1,35 +1,51 @@
-import { useCallback, useEffect } from 'react'
-import Board from './Board.jsx'
-import StatusBar from './StatusBar.jsx'
-import WinGlow from './WinGlow.jsx'
-import { useClassicGame } from '../hooks/useClassicGame.js'
+import { useCallback, useEffect } from "react";
+import Board from "./Board.jsx";
+import StatusBar from "./StatusBar.jsx";
+import WinGlow from "./WinGlow.jsx";
+import { useClassicGame } from "../hooks/useClassicGame.js";
 
-export default function ClassicGameView({ opponent, difficulty, humanSymbol, onRoundEnd, sound }) {
+export default function ClassicGameView({
+  opponent,
+  difficulty,
+  humanSymbol,
+  onRoundEnd,
+  sound,
+}) {
   const handleRoundEnd = useCallback(
     (result) => {
-      if (result.winner) sound.playWin()
-      else sound.playDraw()
-      onRoundEnd(result)
+      if (result.winner) sound.playWin();
+      else sound.playDraw();
+      onRoundEnd(result);
     },
-    [sound, onRoundEnd]
-  )
+    [sound, onRoundEnd],
+  );
 
-  const { board, current, winner, winLine, isDraw, isOver, aiThinking, placeMark, reset } = useClassicGame({
+  const {
+    board,
+    current,
+    winner,
+    winLine,
+    isDraw,
+    isOver,
+    aiThinking,
+    placeMark,
+    reset,
+  } = useClassicGame({
     opponent,
     difficulty,
     humanSymbol,
     onMove: sound.playMove,
     onRoundEnd: handleRoundEnd,
-  })
+  });
 
   useEffect(() => {
-    reset()
+    reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opponent, difficulty, humanSymbol])
+  }, [opponent, difficulty, humanSymbol]);
 
   return (
     <>
-      <div className="relative">
+      <div className="relative flex-1 min-h-0 aspect-square max-w-full mx-auto overflow-hidden">
         <WinGlow symbol={winner} />
         <Board
           board={board}
@@ -44,11 +60,11 @@ export default function ClassicGameView({ opponent, difficulty, humanSymbol, onR
         winner={winner}
         isDraw={isDraw}
         onRestart={() => {
-          sound.playClick()
-          reset()
+          sound.playClick();
+          reset();
         }}
         aiThinking={aiThinking}
       />
     </>
-  )
+  );
 }

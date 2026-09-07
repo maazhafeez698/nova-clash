@@ -54,7 +54,7 @@ function OnlineClassicMatch({
 
   return (
     <>
-      <div className="relative">
+      <div className="relative flex-1 min-h-0 aspect-square max-w-full mx-auto overflow-hidden">
         <WinGlow symbol={winner} />
         <Board
           board={board}
@@ -120,7 +120,7 @@ function OnlineUltimateMatch({
 
   return (
     <>
-      <div className="relative">
+      <div className="relative flex-1 min-h-0 aspect-square max-w-full mx-auto overflow-hidden">
         <WinGlow symbol={overallWinner} />
         <UltimateBoard
           state={game}

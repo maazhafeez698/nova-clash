@@ -6,6 +6,14 @@ import {
 } from "../game/ultimateLogic.js";
 
 /**
+ * Same design as useOnlineClassicGame: both the local (click-driven) move and
+ * the incoming-message move only ever set state — onMove/onRoundEnd fire
+ * exclusively from the watcher effects below, which react to committed state
+ * rather than being called inline. That keeps local and remote moves on one
+ * single side-effect path and makes each callback immune to React's dev-mode
+ * double-invocation of the functional setState updater the incoming-message
+ * handler has to use.
+ *
  * @param {import('peerjs').DataConnection|null} connection
  * @param {'X'|'O'} mySymbol
  * @param {{ onMove?: (symbol: string) => void, onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void }} callbacks
@@ -16,6 +24,7 @@ export function useOnlineUltimateGame(
   { onMove, onRoundEnd } = {},
 ) {
   const [state, setState] = useState(createUltimateState);
+  const [lastMoveSymbol, setLastMoveSymbol] = useState(null);
 
   const isOver = state.overallWinner !== null || state.isDraw;
   const isMyTurn = !isOver && state.current === mySymbol;
@@ -23,33 +32,23 @@ export function useOnlineUltimateGame(
   const reset = useCallback(
     (broadcast = true) => {
       setState(createUltimateState());
+      setLastMoveSymbol(null);
       if (broadcast) connection?.send({ type: "restart" });
     },
     [connection],
   );
 
-  const applyAndReport = useCallback(
-    (prev, boardIndex, cellIndex, symbol) => {
-      const next = applyUltimateMove(prev, boardIndex, cellIndex);
-      onMove?.(symbol);
-      if (next.overallWinner)
-        onRoundEnd?.({ winner: next.overallWinner, isDraw: false });
-      else if (next.isDraw) onRoundEnd?.({ winner: null, isDraw: true });
-      return next;
-    },
-    [onMove, onRoundEnd],
-  );
-
   const placeMark = useCallback(
     (boardIndex, cellIndex) => {
       if (!isMyTurn) return;
-      setState((prev) => {
-        if (!isCellPlayable(prev, boardIndex, cellIndex)) return prev;
-        connection?.send({ type: "move", boardIndex, cellIndex });
-        return applyAndReport(prev, boardIndex, cellIndex, mySymbol);
-      });
+      if (!isCellPlayable(state, boardIndex, cellIndex)) return;
+
+      const symbol = state.current;
+      connection?.send({ type: "move", boardIndex, cellIndex });
+      setLastMoveSymbol(symbol);
+      setState(applyUltimateMove(state, boardIndex, cellIndex));
     },
-    [isMyTurn, connection, applyAndReport, mySymbol],
+    [state, isMyTurn, connection],
   );
 
   useEffect(() => {
@@ -66,13 +65,8 @@ export function useOnlineUltimateGame(
         setState((prev) => {
           if (!isCellPlayable(prev, data.boardIndex, data.cellIndex))
             return prev; // ignore illegal/duplicate moves
-          const remoteSymbol = prev.current;
-          return applyAndReport(
-            prev,
-            data.boardIndex,
-            data.cellIndex,
-            remoteSymbol,
-          );
+          setLastMoveSymbol(prev.current); // pure setState call — side effects live in the effects below
+          return applyUltimateMove(prev, data.boardIndex, data.cellIndex);
         });
       } else if (data.type === "restart") {
         reset(false);
@@ -83,7 +77,21 @@ export function useOnlineUltimateGame(
     return () => {
       connection.off?.("data", handleData);
     };
-  }, [connection, applyAndReport, reset]);
+  }, [connection, reset]);
+
+  // Fires exactly once per real move (local or remote).
+  useEffect(() => {
+    if (lastMoveSymbol) onMove?.(lastMoveSymbol);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.boards]);
+
+  // Fires exactly once per real win/draw (local or remote).
+  useEffect(() => {
+    if (state.overallWinner)
+      onRoundEnd?.({ winner: state.overallWinner, isDraw: false });
+    else if (state.isDraw) onRoundEnd?.({ winner: null, isDraw: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.overallWinner, state.isDraw]);
 
   return { ...state, isOver, isMyTurn, placeMark, reset };
 }

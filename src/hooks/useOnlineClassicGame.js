@@ -8,10 +8,19 @@ import {
 
 /**
  * Mirrors useClassicGame's shape, but the "other side" is a remote human
- * connected via `connection` instead of the built-in AI. Both peers run this
- * same reducer locally and stay in sync purely by exchanging move indices —
- * neither side trusts the other blindly, every incoming move is re-validated
- * against local state before it's applied.
+ * connected via `connection` instead of the built-in AI.
+ *
+ * Both the local (click-driven) move and the incoming-message move only ever
+ * set state — neither calls onMove/onRoundEnd directly. Those callbacks fire
+ * exclusively from the two watcher effects below, which react to *committed*
+ * state (board / winner / isDraw). That's deliberate: the incoming-message
+ * handler has to use a functional setBoard(prev => ...) updater (it's
+ * registered once per connection and must always see the latest board, not a
+ * stale closure), and React's dev-mode Strict Mode invokes functional
+ * updaters twice to check purity. Routing every side effect through state
+ * changes instead of firing them inline means each one can only ever fire
+ * once per real transition — regardless of whether the move was local or
+ * remote, and regardless of how many times an updater itself re-ran.
  *
  * @param {import('peerjs').DataConnection|null} connection
  * @param {'X'|'O'} mySymbol
@@ -27,6 +36,7 @@ export function useOnlineClassicGame(
   const [winner, setWinner] = useState(null);
   const [winLine, setWinLine] = useState(null);
   const [isDraw, setIsDraw] = useState(false);
+  const [lastMoveSymbol, setLastMoveSymbol] = useState(null);
 
   const isOver = winner !== null || isDraw;
   const isMyTurn = !isOver && current === mySymbol;
@@ -38,6 +48,7 @@ export function useOnlineClassicGame(
       setWinner(null);
       setWinLine(null);
       setIsDraw(false);
+      setLastMoveSymbol(null);
       if (broadcast) connection?.send({ type: "restart" });
     },
     [connection],
@@ -50,22 +61,20 @@ export function useOnlineClassicGame(
       const nextBoard = board.slice();
       nextBoard[index] = mySymbol;
       setBoard(nextBoard);
-      onMove?.(mySymbol);
-      connection?.send({ type: "move", index });
+      setLastMoveSymbol(mySymbol); // onMove/onRoundEnd fire from the watcher effects below, not here —
+      connection?.send({ type: "move", index }); // that's what keeps local and remote moves on one single path
 
       const result = calculateWinner(nextBoard);
       if (result.winner) {
         setWinner(result.winner);
         setWinLine(result.line);
-        onRoundEnd?.({ winner: result.winner, isDraw: false });
       } else if (isBoardFull(nextBoard)) {
         setIsDraw(true);
-        onRoundEnd?.({ winner: null, isDraw: true });
       } else {
         setCurrent(otherSymbol(mySymbol));
       }
     },
-    [board, isMyTurn, mySymbol, connection, onMove, onRoundEnd],
+    [board, isMyTurn, mySymbol, connection],
   );
 
   useEffect(() => {
@@ -81,16 +90,14 @@ export function useOnlineClassicGame(
           const remoteSymbol = otherSymbol(mySymbol);
           const nextBoard = prevBoard.slice();
           nextBoard[data.index] = remoteSymbol;
-          onMove?.(remoteSymbol);
+          setLastMoveSymbol(remoteSymbol); // pure setState call — side effects live in the effects below
 
           const result = calculateWinner(nextBoard);
           if (result.winner) {
             setWinner(result.winner);
             setWinLine(result.line);
-            onRoundEnd?.({ winner: result.winner, isDraw: false });
           } else if (isBoardFull(nextBoard)) {
             setIsDraw(true);
-            onRoundEnd?.({ winner: null, isDraw: true });
           } else {
             setCurrent(mySymbol);
           }
@@ -105,7 +112,21 @@ export function useOnlineClassicGame(
     return () => {
       connection.off?.("data", handleData);
     };
-  }, [connection, mySymbol, onMove, onRoundEnd, reset]);
+  }, [connection, mySymbol, reset]);
+
+  // Fires exactly once per real move (local or remote), regardless of how
+  // many times React invoked the setBoard updater above.
+  useEffect(() => {
+    if (lastMoveSymbol) onMove?.(lastMoveSymbol);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [board]);
+
+  // Fires exactly once per real win/draw (local or remote).
+  useEffect(() => {
+    if (winner) onRoundEnd?.({ winner, isDraw: false });
+    else if (isDraw) onRoundEnd?.({ winner: null, isDraw: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [winner, isDraw]);
 
   return {
     board,

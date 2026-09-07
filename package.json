@@ -1,9 +1,8 @@
 {
   "name": "nova-clash",
   "private": true,
-  "version": "1.0.0",
   "type": "module",
-  "description": "Nova Clash — a constellation-themed strategic Tic Tac Toe with Classic & Ultimate modes, AI opponents, and synthesized sound.",
+  "description": "Nova Clash - a constellation-themed strategic Tic Tac Toe with Classic & Ultimate modes, AI opponents, and synthesized sound.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
