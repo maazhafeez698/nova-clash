@@ -9,13 +9,7 @@ import { getUltimateAiMove } from "../game/ultimateAi.js";
 
 const AI_THINK_DELAY_MS = 550;
 
-/**
- * @param {{
- *   opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O',
- *   onMove?: (symbol: string) => void,
- *   onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void,
- * }} options
- */
+/** @param {{ opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O', onMove?: (symbol: string) => void, onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void }} options */
 export function useUltimateGame({
   opponent,
   difficulty,
@@ -31,10 +25,6 @@ export function useUltimateGame({
   const isOver = state.overallWinner !== null || state.isDraw;
   const isAiTurn = opponent === "ai" && state.current === aiSymbol && !isOver;
 
-  // Local (human-click) move: reads `state` straight from the render closure
-  // and commits a plain next-state value — no functional setState(prev => ...)
-  // updater, so onMove/onRoundEnd here can never be double-invoked by React's
-  // dev-mode Strict Mode purity check.
   const placeMark = useCallback(
     (boardIndex, cellIndex) => {
       if (opponent === "ai" && state.current !== humanSymbol) return;
@@ -52,9 +42,6 @@ export function useUltimateGame({
     [state, opponent, humanSymbol, onMove, onRoundEnd],
   );
 
-  // AI turn: same reasoning as useClassicGame's AI effect — reads `state`
-  // directly rather than via a functional updater, since the closure is
-  // guaranteed fresh whenever isAiTurn just became true.
   useEffect(() => {
     if (!isAiTurn) return;
 

@@ -5,19 +5,7 @@ import {
   isCellPlayable,
 } from "../game/ultimateLogic.js";
 
-/**
- * Same design as useOnlineClassicGame: both the local (click-driven) move and
- * the incoming-message move only ever set state — onMove/onRoundEnd fire
- * exclusively from the watcher effects below, which react to committed state
- * rather than being called inline. That keeps local and remote moves on one
- * single side-effect path and makes each callback immune to React's dev-mode
- * double-invocation of the functional setState updater the incoming-message
- * handler has to use.
- *
- * @param {import('peerjs').DataConnection|null} connection
- * @param {'X'|'O'} mySymbol
- * @param {{ onMove?: (symbol: string) => void, onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void }} callbacks
- */
+/** @param {import('peerjs').DataConnection|null} connection @param {'X'|'O'} mySymbol @param {{ onMove?: (symbol: string) => void, onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void }} callbacks */
 export function useOnlineUltimateGame(
   connection,
   mySymbol,
@@ -64,8 +52,8 @@ export function useOnlineUltimateGame(
       ) {
         setState((prev) => {
           if (!isCellPlayable(prev, data.boardIndex, data.cellIndex))
-            return prev; // ignore illegal/duplicate moves
-          setLastMoveSymbol(prev.current); // pure setState call — side effects live in the effects below
+            return prev;
+          setLastMoveSymbol(prev.current);
           return applyUltimateMove(prev, data.boardIndex, data.cellIndex);
         });
       } else if (data.type === "restart") {
@@ -79,13 +67,11 @@ export function useOnlineUltimateGame(
     };
   }, [connection, reset]);
 
-  // Fires exactly once per real move (local or remote).
   useEffect(() => {
     if (lastMoveSymbol) onMove?.(lastMoveSymbol);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.boards]);
 
-  // Fires exactly once per real win/draw (local or remote).
   useEffect(() => {
     if (state.overallWinner)
       onRoundEnd?.({ winner: state.overallWinner, isDraw: false });

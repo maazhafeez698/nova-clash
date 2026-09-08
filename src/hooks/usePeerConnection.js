@@ -2,19 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Peer from "peerjs";
 import { generateInviteCode } from "../game/inviteCode.js";
 
-// Namespaces our peer IDs on PeerJS's shared public broker so a random
-// 5-character code from this app can't collide with someone else's demo.
 const PEER_ID_PREFIX = "novaclash";
 
 const peerIdFor = (code) => `${PEER_ID_PREFIX}-${code}`;
 
-/**
- * Wraps PeerJS so the rest of the app only has to think in terms of
- * "invite codes" and a `connection` object with `.send()` / `.on('data')`.
- *
- * status: 'idle' | 'waiting' | 'connecting' | 'connected' | 'error' | 'closed'
- * role:   'host' | 'guest' | null
- */
 export function usePeerConnection() {
   const peerRef = useRef(null);
   const connectionRef = useRef(null);
@@ -32,7 +23,6 @@ export function usePeerConnection() {
     peerRef.current = null;
   }, []);
 
-  // Always tear the WebRTC connection down when this hook's owner unmounts.
   useEffect(() => teardown, [teardown]);
 
   const bindConnection = useCallback((conn) => {
@@ -52,7 +42,6 @@ export function usePeerConnection() {
     });
   }, []);
 
-  /** Host flow: mint a code, open a Peer under it, wait for someone to connect. */
   const createInvite = useCallback(
     (mode) => {
       teardown();
@@ -79,7 +68,6 @@ export function usePeerConnection() {
     [bindConnection, teardown],
   );
 
-  /** Guest flow: connect our own (throwaway-id) Peer to the host's code. */
   const joinInvite = useCallback(
     (code) => {
       teardown();

@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from "react";
 import UltimateBoard from "./UltimateBoard.jsx";
 import StatusBar from "./StatusBar.jsx";
-import WinGlow from "./WinGlow.jsx";
 import { useUltimateGame } from "../hooks/useUltimateGame.js";
 
 export default function UltimateGameView({
@@ -49,10 +48,11 @@ export default function UltimateGameView({
       ? "Free choice — play in any open board"
       : `Sent to board ${activeBoard + 1}`;
 
+  const perspective = opponent === "ai" ? humanSymbol : undefined;
+
   return (
     <>
       <div className="relative flex-1 min-h-0 aspect-square max-w-full mx-auto overflow-hidden">
-        <WinGlow symbol={overallWinner} />
         <UltimateBoard
           state={game}
           onCellClick={placeMark}
@@ -69,6 +69,8 @@ export default function UltimateGameView({
         }}
         aiThinking={aiThinking}
         hint={hint}
+        perspective={perspective}
+        opponentLabel="Nova"
       />
     </>
   );

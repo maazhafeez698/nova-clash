@@ -1,9 +1,4 @@
-// Invite codes are short, shareable strings that also encode which game mode
-// the host is running — e.g. "CLS-7F3QK" for Classic, "ULT-7F3QK" for
-// Ultimate — so a guest never has to separately agree on a mode, they just
-// type the code they were given.
-
-const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O or 1/I — easy to read aloud
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 5;
 
 const MODE_TO_PREFIX = { classic: "CLS", ultimate: "ULT" };
@@ -22,10 +17,7 @@ export function generateInviteCode(mode) {
   return `${MODE_TO_PREFIX[mode]}-${randomSegment(CODE_LENGTH)}`;
 }
 
-/**
- * @param {string} raw - whatever the guest typed/pasted
- * @returns {{ mode: 'classic'|'ultimate', code: string } | null}
- */
+/** @param {string} raw @returns {{ mode: 'classic'|'ultimate', code: string } | null} */
 export function parseInviteCode(raw) {
   const cleaned = String(raw).trim().toUpperCase().replace(/\s+/g, "");
   const match = /^(CLS|ULT)-?([A-Z0-9]{4,8})$/.exec(cleaned);

@@ -1,8 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import Board from "./Board.jsx";
 import UltimateBoard from "./UltimateBoard.jsx";
 import StatusBar from "./StatusBar.jsx";
-import WinGlow from "./WinGlow.jsx";
 import InviteLobby from "./InviteLobby.jsx";
 import { usePeerConnection } from "../hooks/usePeerConnection.js";
 import { useOnlineClassicGame } from "../hooks/useOnlineClassicGame.js";
@@ -55,7 +54,6 @@ function OnlineClassicMatch({
   return (
     <>
       <div className="relative flex-1 min-h-0 aspect-square max-w-full mx-auto overflow-hidden">
-        <WinGlow symbol={winner} />
         <Board
           board={board}
           winLine={winLine}
@@ -73,6 +71,8 @@ function OnlineClassicMatch({
           reset();
         }}
         hint={!isOver && !isMyTurn ? "Waiting on your friend…" : undefined}
+        perspective={mySymbol}
+        opponentLabel="Your opponent"
       />
       <LeaveLink onLeave={onLeave} />
     </>
@@ -121,7 +121,6 @@ function OnlineUltimateMatch({
   return (
     <>
       <div className="relative flex-1 min-h-0 aspect-square max-w-full mx-auto overflow-hidden">
-        <WinGlow symbol={overallWinner} />
         <UltimateBoard
           state={game}
           onCellClick={placeMark}
@@ -137,20 +136,27 @@ function OnlineUltimateMatch({
           reset();
         }}
         hint={hint}
+        perspective={mySymbol}
+        opponentLabel="Your opponent"
       />
       <LeaveLink onLeave={onLeave} />
     </>
   );
 }
 
-/**
- * @param {{ mode: 'classic'|'ultimate', onRoundEnd: (result: object) => void, sound: ReturnType<typeof import('../hooks/useSound.js').useSound> }} props
- */
-export default function OnlineGameView({ mode, onRoundEnd, sound }) {
+/** @param {{ mode: 'classic'|'ultimate', onRoundEnd: (result: object) => void, onMatchStart?: () => void, sound: ReturnType<typeof import('../hooks/useSound.js').useSound> }} props */
+export default function OnlineGameView({
+  mode,
+  onRoundEnd,
+  onMatchStart,
+  sound,
+}) {
   const peer = usePeerConnection();
 
-  // The host's current mode toggle decides the code they mint. A guest never
-  // picks a mode themselves — it's decoded straight out of the code they enter.
+  useEffect(() => {
+    if (peer.status === "connected") onMatchStart?.();
+  }, [peer.status, onMatchStart]);
+
   const resolvedMode =
     peer.role === "guest"
       ? (parseInviteCode(peer.inviteCode)?.mode ?? mode)

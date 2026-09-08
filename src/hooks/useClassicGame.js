@@ -9,17 +9,7 @@ import { getAiMove } from "../game/ai.js";
 
 const AI_THINK_DELAY_MS = 450;
 
-/**
- * Local state machine for a single Classic (3x3) match. Supports local PvP or a
- * built-in AI opponent (easy / medium / hard) that plays the symbol the human
- * did not choose.
- *
- * @param {{
- *   opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O',
- *   onMove?: (symbol: string) => void,
- *   onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void,
- * }} options
- */
+/** @param {{ opponent: 'pvp'|'ai', difficulty: 'easy'|'medium'|'hard', humanSymbol: 'X'|'O', onMove?: (symbol: string) => void, onRoundEnd?: (result: { winner: string|null, isDraw: boolean }) => void }} options */
 export function useClassicGame({
   opponent,
   difficulty,
@@ -42,7 +32,7 @@ export function useClassicGame({
   const placeMark = useCallback(
     (index) => {
       if (isOver || board[index] !== null) return;
-      if (opponent === "ai" && current !== humanSymbol) return; // ignore clicks during AI turn
+      if (opponent === "ai" && current !== humanSymbol) return;
 
       const nextBoard = board.slice();
       nextBoard[index] = current;
@@ -66,13 +56,6 @@ export function useClassicGame({
     [board, current, isOver, opponent, humanSymbol, onMove, onRoundEnd],
   );
 
-  // AI turn: "think" briefly, then play. Reads `board` straight from the
-  // render closure rather than a functional setBoard(prev => ...) updater —
-  // safe here because this effect only (re-)runs when isAiTurn flips true,
-  // which happens on the exact render where `board` was last updated, so the
-  // closure is guaranteed fresh. This also avoids React's dev-mode
-  // double-invocation of functional updaters, which would otherwise call
-  // onMove/onRoundEnd twice for a single real move.
   useEffect(() => {
     if (!isAiTurn) return;
 
@@ -109,7 +92,7 @@ export function useClassicGame({
 
   const reset = useCallback(() => {
     setBoard(emptyBoard());
-    setCurrent("X"); // X always opens the round, per classic rules
+    setCurrent("X");
     setWinner(null);
     setWinLine(null);
     setIsDraw(false);

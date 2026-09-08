@@ -1,29 +1,53 @@
 const SYMBOL_STYLES = {
-  X: { text: 'text-amber', dot: 'bg-amber' },
-  O: { text: 'text-cyan', dot: 'bg-cyan' },
-}
+  X: { text: "text-amber", dot: "bg-amber" },
+  O: { text: "text-cyan", dot: "bg-cyan" },
+};
 
-export default function StatusBar({ current, winner, isDraw, onRestart, aiThinking, hint }) {
-  let message
-  let tone = SYMBOL_STYLES[current]
+export default function StatusBar({
+  current,
+  winner,
+  isDraw,
+  onRestart,
+  aiThinking,
+  hint,
+  perspective,
+  opponentLabel = "Your opponent",
+}) {
+  const tone = SYMBOL_STYLES[winner ?? current];
 
+  let message;
   if (winner) {
-    tone = SYMBOL_STYLES[winner]
-    message = (
-      <>
-        <span className={`font-semibold ${tone.text}`}>{winner}</span> wins the round
-      </>
-    )
+    const wonTone = SYMBOL_STYLES[winner];
+    if (perspective) {
+      message =
+        winner === perspective ? (
+          <span className={`font-semibold ${wonTone.text}`}>
+            You win this round! 🎉
+          </span>
+        ) : (
+          <span className="text-ink-muted">
+            {opponentLabel} wins this round
+          </span>
+        );
+    } else {
+      message = (
+        <>
+          <span className={`font-semibold ${wonTone.text}`}>{winner}</span> wins
+          the round 🎉
+        </>
+      );
+    }
   } else if (isDraw) {
-    message = <span className="text-ink-muted">Stalemate — board full</span>
+    message = <span className="text-ink-muted">Tied — good game 🤝</span>;
   } else if (aiThinking) {
-    message = <span className="text-ink-muted">Nova is calculating…</span>
+    message = <span className="text-ink-muted">Nova is calculating…</span>;
   } else {
     message = (
       <>
-        <span className={`font-semibold ${tone.text}`}>{current}</span>&rsquo;s move
+        <span className={`font-semibold ${tone.text}`}>{current}</span>&rsquo;s
+        move
       </>
-    )
+    );
   }
 
   return (
@@ -37,7 +61,7 @@ export default function StatusBar({ current, winner, isDraw, onRestart, aiThinki
         >
           <span
             className={`h-2.5 w-2.5 rounded-full ${tone.dot} ${
-              !winner && !isDraw ? 'animate-pulse' : ''
+              !winner && !isDraw ? "animate-pulse" : ""
             }`}
             aria-hidden="true"
           />
@@ -51,7 +75,9 @@ export default function StatusBar({ current, winner, isDraw, onRestart, aiThinki
           Restart
         </button>
       </div>
-      {hint && !winner && !isDraw && <p className="text-xs text-ink-faint pl-5">{hint}</p>}
+      {hint && !winner && !isDraw && (
+        <p className="text-xs text-ink-faint pl-5">{hint}</p>
+      )}
     </div>
-  )
+  );
 }

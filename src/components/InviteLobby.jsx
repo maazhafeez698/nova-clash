@@ -9,7 +9,7 @@ export default function InviteLobby({
   onJoin,
   onCancel,
 }) {
-  const [view, setView] = useState("choose"); // 'choose' | 'host' | 'join'
+  const [view, setView] = useState("choose");
   const [joinInput, setJoinInput] = useState("");
   const [joinError, setJoinError] = useState(null);
 
@@ -28,10 +28,7 @@ export default function InviteLobby({
     if (!inviteCode) return;
     try {
       await navigator.clipboard.writeText(inviteCode);
-    } catch {
-      // Clipboard API unavailable (older browser, insecure context) — the
-      // code is still on screen to copy by hand.
-    }
+    } catch {}
   };
 
   const handleBack = () => {
@@ -104,7 +101,6 @@ export default function InviteLobby({
     );
   }
 
-  // view === 'join'
   return (
     <div className={cardClass}>
       <form

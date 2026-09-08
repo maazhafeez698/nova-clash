@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from "react";
 import Board from "./Board.jsx";
 import StatusBar from "./StatusBar.jsx";
-import WinGlow from "./WinGlow.jsx";
 import { useClassicGame } from "../hooks/useClassicGame.js";
 
 export default function ClassicGameView({
@@ -43,10 +42,11 @@ export default function ClassicGameView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opponent, difficulty, humanSymbol]);
 
+  const perspective = opponent === "ai" ? humanSymbol : undefined;
+
   return (
     <>
       <div className="relative flex-1 min-h-0 aspect-square max-w-full mx-auto overflow-hidden">
-        <WinGlow symbol={winner} />
         <Board
           board={board}
           winLine={winLine}
@@ -64,6 +64,8 @@ export default function ClassicGameView({
           reset();
         }}
         aiThinking={aiThinking}
+        perspective={perspective}
+        opponentLabel="Nova"
       />
     </>
   );

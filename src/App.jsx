@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Header from "./components/Header.jsx";
 import ScorePanel from "./components/ScorePanel.jsx";
 import ControlBar from "./components/ControlBar.jsx";
@@ -8,18 +8,30 @@ import OnlineGameView from "./components/OnlineGameView.jsx";
 import { useLocalStorageState } from "./hooks/useLocalStorageState.js";
 import { useSound } from "./hooks/useSound.js";
 
+const EMPTY_SCORES = { X: 0, O: 0, draws: 0 };
+
 export default function App() {
-  const [scores, setScores] = useLocalStorageState("nova-clash:scores", {
-    X: 0,
-    O: 0,
-    draws: 0,
-  });
-  const [mode, setMode] = useState("classic"); // 'classic' | 'ultimate'
-  const [opponent, setOpponent] = useState("pvp"); // 'pvp' | 'ai' | 'online'
+  const [scores, setScores] = useLocalStorageState(
+    "nova-clash:scores",
+    EMPTY_SCORES,
+  );
+  const [mode, setMode] = useState("classic");
+  const [opponent, setOpponent] = useState("pvp");
   const [difficulty, setDifficulty] = useState("medium");
   const [humanSymbol, setHumanSymbol] = useState("X");
 
   const sound = useSound();
+
+  const clearScores = useCallback(() => setScores(EMPTY_SCORES), [setScores]);
+
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    clearScores();
+  }, [mode, opponent, humanSymbol, clearScores]);
 
   const handleRoundEnd = useCallback(
     ({ winner, isDraw }) => {
@@ -49,8 +61,8 @@ export default function App() {
 
   const resetScores = useCallback(() => {
     sound.playClick();
-    setScores({ X: 0, O: 0, draws: 0 });
-  }, [sound, setScores]);
+    clearScores();
+  }, [sound, clearScores]);
 
   return (
     <div className="h-dvh overflow-hidden flex items-center justify-center px-3 py-3 sm:px-4 sm:py-4">
@@ -73,6 +85,7 @@ export default function App() {
             <OnlineGameView
               mode={mode}
               onRoundEnd={handleRoundEnd}
+              onMatchStart={clearScores}
               sound={sound}
             />
           ) : (
